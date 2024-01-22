@@ -1,0 +1,129 @@
+import java.util.Scanner;
+import java.io.File;
+import java.io.FileNotFoundException;
+
+public class ConwayGameOfLife {
+    private int length;//设置矩形行数
+    private int width;//设置矩形列数
+    private boolean[][] grid;//使用布尔二维数组
+
+    //通过构造方法确定矩形单元尺寸
+    public ConwayGameOfLife(int length,int width) {
+        this.length = length;
+        this.width = width;
+        this.grid = new boolean[length][width];
+    }
+
+    //初始化网格，并给网格赋值
+    public void initializeGrid(boolean[][] initialGrid) {
+        for (int i = 0; i < length; i++) {
+            for (int j = 0; j < width; j++) {
+                grid[i][j] = initialGrid[i][j];
+            }
+        }
+    }
+
+    //打印出网格
+    public void printGrid() {
+        for (int i = 0; i < length; i++) {
+            for (int j = 0; j < width; j++) {
+                System.out.print(grid[i][j] ? "x " : ". ");
+            }
+            System.out.println();//确保换行
+        }
+    }
+
+    //更新网格，得到下一代情况
+    public void updateGrid() {
+        boolean[][] nextGrid = new boolean[length][width];
+        for (int i = 0; i < length; i++) {
+            for (int j = 0; j < width; j++) {
+                int liveNeighbors = countLiveNeighbors(i, j);
+                if (grid[i][j]) {
+                    nextGrid[i][j] = liveNeighbors == 2 || liveNeighbors == 3;
+                } else {
+                    nextGrid[i][j] = liveNeighbors == 3;
+                }
+            }//下一代存活的条件：活格子周围2/3，死格子周围3个
+        }
+        grid = nextGrid;//更新二维数组
+    }
+
+    //数邻接格子数
+    private int countLiveNeighbors(int x, int y) {
+        int count = 0;
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                if (i == 0 && j == 0) continue;//跳过格子自身
+                int newX = x + i;
+                int newY = y + j;
+                if (newX >= 0 && newX < length && newY >= 0 && newY < width) {
+                    if (grid[newX][newY]) {
+                        count++;
+                    }
+                }
+            }
+        }
+        return count;
+    }
+
+    //游戏实现
+    public static void main(String[] args) throws FileNotFoundException {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter grid length: ");
+        int length = scanner.nextInt();
+        System.out.print("Enter grid width: ");
+        int width=scanner.nextInt();
+
+        ConwayGameOfLife game = new ConwayGameOfLife(length,width);
+
+        //给用户提供选择，即自己输入或者文件读取
+        System.out.println("Choose input source:");
+        System.out.println("1. Keyboard input");
+        System.out.println("2. File input");
+        int inputChoice = scanner.nextInt();
+
+        boolean[][] initialGrid = new boolean[length][width];
+
+        if (inputChoice == 1) {
+            System.out.println("Enter initial grid state (use 'x' for live cells and '.' for dead cells):");
+            for (int i = 0; i < length; i++) {
+                String row = scanner.next();
+                for (int j = 0; j < width; j++) {
+                    initialGrid[i][j] = row.charAt(j) == 'x';
+                }
+            }
+        } else if (inputChoice == 2) {
+            System.out.print("Enter filename for initial grid: ");
+            String filename = scanner.next();
+            File file = new File(filename);
+            Scanner fileScanner = new Scanner(file);
+            for (int i = 0; i < length; i++) {
+                String row = fileScanner.next();
+                for (int j = 0; j < width; j++) {
+                    initialGrid[i][j] = row.charAt(j) == 'x';
+                }
+            }
+            fileScanner.close();
+        }
+
+        game.initializeGrid(initialGrid);
+
+        //设置选择更新几代
+        System.out.print("Enter number of generations: ");
+        int generations = scanner.nextInt();
+
+        for (int i = 0; i <= generations; i++) {
+            System.out.println("Generation " + i + ":");
+            game.printGrid();
+            System.out.println();
+            game.updateGrid();
+        }
+        scanner.close();
+    }
+}
+实验小结：
+这个实验是在对上学期的知识进行回顾与小结，没有运用到太多数据结构知识。
+1.本次实验的设计相对而言不是特别困难，关键是理解清楚生命模拟游戏的具体机制，从而对其进行相关方法设计。同时本题还需要应用输入输出流的知识对文本进行读取，要提供供用户自主输入和直接文本输入两种选择，不过对于输入格式是有很严格的要求限制，换行必须到位。
+2.本次设计直接在一个类中实现，首先通过构造方法实现数据的读取和分配，网格状态有两种：生和死，所以我选择使用布尔数组进行解题，即活是true，死为false。鉴于这次涉及到文件的处理，所以还需要考虑异常情况确保运行程序不出错，在调用相关方法时均给出了清楚的提示和选择。
+3.通过本次实验，进一步巩固了我对于Java语法的相关知识和理解，同时题目信息多也锻炼了我抽象出设计要求的代码能力，本次实验收益匪浅。比如在思考如何通过遍历来数网格周围的格子数目时，想到了利用二维数组的下标进行关系的转换。此外加深了我对于Java数据输入流的理解与巩固。

@@ -1,0 +1,194 @@
+一. 实验题目
+中缀表达式求值
+
+二. 问题描述
+中缀表达式是我们所熟悉的表达式形式。为了能正确表示运算的先后顺序，中缀表达式中难免要出现括号，假设只允许用圆括号。
+编写程序，读入一个操作数为实数的中缀表达式，求该表达式的值。
+要求中缀表达式以字符串的形式读入，可含有加、减、乘、除运算符和左、右括号，并假设以“#”作为结束符。
+如输入“3.5*(20+4)-1#”，则程序运行结果应为83。
+要求一步一步显示输入序列和栈的变化过程。
+考虑算法的健壮性，当表达式错误时，要给出错误种类的提示。
+
+三. 程序和执行结果（执行结果用截图）
+程序：
+//Node类
+public class Node {
+    public double data;
+    public Node next;
+    public Node(){
+        this(-1.0,null);
+    }
+    public Node(double data){
+        this(data,null);
+    }
+    public Node(double data,Node next){
+        this.data=data;
+        this.next=next;
+    }
+}
+//LinkStack类
+public class LinkStack {
+    private Node top;
+    public LinkStack() {
+        this.top = null;
+    }
+
+    public boolean isEmpty() {
+        return top == null;
+    }
+
+    public void push(double data) {
+        Node newNode = new Node(data);
+        newNode.next = top;
+        top = newNode;
+    }
+
+    public double pop() throws Exception {
+        if (isEmpty()) {
+            throw new Exception("栈为空，无法出栈");
+        }
+        double data = top.data;
+        top = top.next;
+        return data;
+    }
+
+    public double peek() throws Exception {
+        if (isEmpty()) {
+            throw new Exception("栈为空，无法获取栈顶元素");
+        }
+        return top.data;
+    }
+}
+public class Question{
+    LinkStack st=new LinkStack();
+    private static boolean isOperator(char ch) {
+        return ch == '+' || ch == '-' || ch == '*' || ch == '/';
+    }
+
+    private static int getPrecedence(char operator) {
+        switch (operator) {
+            case '+':
+            case '-':
+                return 1;
+            case '*':
+            case '/':
+                return 2;
+            default:
+                return 0;
+        }
+    }
+
+    private static void applyOperator(LinkStack operandStack, LinkStack operatorStack) throws Exception {
+        if (operandStack.isEmpty() || operatorStack.isEmpty()) {
+            throw new Exception("表达式错误");
+        }
+        char operator = (char) operatorStack.pop();
+        double operand2 = operandStack.pop();
+        double operand1 = operandStack.pop();
+        double result = 0;
+        switch (operator) {
+            case '+':
+                result = operand1 + operand2;
+                break;
+            case '-':
+                result = operand1 - operand2;
+                break;
+            case '*':
+                result = operand1 * operand2;
+                break;
+            case '/':
+                if (operand2 != 0) {
+                    result = operand1 / operand2;
+                } else {
+                    throw new Exception("除数不能为0");
+                }
+                break;
+        }
+        operandStack.push(result);
+    }
+
+    public static double evaluate(String expression) throws Exception {
+        LinkStack operandStack = new LinkStack();
+        LinkStack operatorStack = new LinkStack();
+        int i = 0;
+
+        while (i < expression.length()) {
+            char ch = expression.charAt(i);
+
+            if (Character.isDigit(ch) || ch == '.') {
+                StringBuilder operand = new StringBuilder();
+                while (i < expression.length() && (Character.isDigit(expression.charAt(i)) || expression.charAt(i) == '.')) {
+                    operand.append(expression.charAt(i));
+                    i++;
+                }
+                operandStack.push(Double.parseDouble(operand.toString()));
+            } else if (ch == '(') {
+                operatorStack.push(ch);
+                i++;
+            } else if (ch == ')') {
+                while (!operatorStack.isEmpty() && (char) operatorStack.peek() != '(') {
+                    applyOperator(operandStack, operatorStack);
+                }
+                if (!operatorStack.isEmpty() && (char) operatorStack.peek() == '(') {
+                    operatorStack.pop();
+                } else {
+                    throw new Exception("括号不匹配");
+                }
+                i++;
+            } else if (isOperator(ch)) {
+                while (!operatorStack.isEmpty() && getPrecedence(ch) <= getPrecedence((char) operatorStack.peek())) {
+                    applyOperator(operandStack, operatorStack);
+                }
+                operatorStack.push(ch);
+                i++;
+            } else if (ch == '#') {
+                break;
+            } else {
+                throw new Exception("表达式包含非法字符");
+            }
+        }
+
+        while (!operatorStack.isEmpty()) {
+            applyOperator(operandStack, operatorStack);
+        }
+
+        if (operatorStack.isEmpty()) {
+            return operandStack.pop();
+        } else {
+            throw new Exception("表达式错误");
+        }
+    }
+
+}
+//Main方法
+import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args){
+        Scanner in = new Scanner(System.in);
+
+            System.out.print("请输入中缀表达式: ");
+            String expression = in.nextLine();
+
+            if (expression.endsWith("#")) {
+                try {
+                    double result = Question.evaluate(expression);
+                    System.out.println("计算结果为: " + result);
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+            } else {
+                System.out.println("表达式必须以#结尾");
+            }
+
+
+    }
+}
+
+  
+
+四. 实验总结
+关于前缀中缀后缀表达式的转化问题，我觉得最不容易出错的方法就是画树，然后对树进行先序、中序和后序遍历。当然用栈解决也是可行的。
+1.	通过本次实验，我进一步加深了对于栈的认识与代码的书写过程。这条题目的要求比较多，需要我们仔细审题进行判断。中缀表达式一定程度上减少了还要对于表达式预处理的问题。细节点很多，首先是表达式前后符号匹配对称的问题，我选择存储进栈然后进行判别和比较。同时还要注意运算符的优先级，在开始的时候我没有注意到这个问题使得计算结果出现异常。
+2.	本次实验要求我们对于正常的中缀表达式求值。我设计了2个栈，分别存放数字和符号。同时会注意到（）以及加减乘除的一些优先级。设计到的错误类型包括了结尾是否正确，符号是否匹配的情况。此外除法也考虑了除数不能为0的情况。
+

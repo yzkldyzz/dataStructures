@@ -1,0 +1,1022 @@
+一. 实验题目
+长整数运算
+
+二. 问题描述
+（1）编写程序，实现顺序表、单链表、双链表、单循环链表和双循环链表的操作。
+（2）在（1）的基础上，编写程序，实现两个长整数的加、减和乘运算。
+
+三. 程序
+1.	单链表程序：
+package 单链表;
+
+class LinkList {
+    int val;
+    LinkList next;
+
+    public LinkList(int val) {
+        this.val = val;
+    }
+}
+package 单链表;
+
+public class question2 {
+    private LinkList head;
+
+    public question2() {
+        head = null;
+    }
+
+    public void insert(int val) {
+        LinkList newNode = new LinkList(val);
+        newNode.next = head;
+        head = newNode;
+    }
+
+    public void display() {
+        LinkList current = head;
+        while (current != null) {
+            System.out.print(current.val);
+            current = current.next;
+        }
+        System.out.println();
+    }
+
+    public question2 add(question2 other) {
+        question2 result = new question2();
+        LinkList current1 = this.head;
+        LinkList current2 = other.head;
+        int carry = 0;
+
+        while (current1 != null || current2 != null) {
+            int sum = carry;
+            if (current1 != null) {
+                sum += current1.val;
+                current1 = current1.next;
+            }
+            if (current2 != null) {
+                sum += current2.val;
+                current2 = current2.next;
+            }
+
+            carry = sum / 10;
+            result.insert(sum % 10);
+        }
+
+        if (carry > 0) {
+            result.insert(carry);
+        }
+
+        return result;
+    }
+
+    public question2 subtract(question2 other) {
+        question2 result = new question2();
+        LinkList current1 = this.head;
+        LinkList current2 = other.head;
+        int borrow = 0;
+
+        while (current1 != null) {
+            int diff = borrow + current1.val;
+            if (current2 != null) {
+                diff -= current2.val;
+                current2 = current2.next;
+            }
+            if (diff < 0) {
+                diff += 10;
+                borrow = -1;
+            } else {
+                borrow = 0;
+            }
+
+            result.insert(diff);
+            current1 = current1.next;
+        }
+
+        // Remove leading zeros
+        while (result.head != null && result.head.val == 0) {
+            result.head = result.head.next;
+        }
+
+        return result;
+    }
+
+    public question2 multiply(question2 other) {
+        question2 result = new question2();
+        question2 tempResult = new question2();
+        LinkList current1 = this.head;
+
+        while (current1 != null) {
+            int carry = 0;
+            question2 temp = new question2();
+            LinkList tempNode = temp.head;
+
+            for (int i = 0; i < current1.val; i++) {
+                while (tempNode != null) {
+                    int product = tempNode.val * other.head.val + carry;
+                    temp.insert(product % 10);
+                    carry = product / 10;
+                    tempNode = tempNode.next;
+                }
+
+                if (carry > 0) {
+                    temp.insert(carry);
+                    carry = 0;
+                }
+
+                tempResult = tempResult.add(temp);
+                temp.head = null;
+                tempNode = tempResult.head;
+            }
+
+            for (int i = 0; i < current1.val; i++) {
+                tempResult.insert(0);
+            }
+
+            result = result.add(tempResult);
+            tempResult.head = null;
+            current1 = current1.next;
+        }
+
+        return result;
+    }
+
+    public static void main(String[] args) {
+        question2 num1 = new question2();
+        question2 num2 = new question2();
+
+        String strNum1 = "123456789012345678901234567890";
+        String strNum2 = "98765432109876543210987654321";
+
+        for (int i = strNum1.length() - 1; i >= 0; i--) {
+            num1.insert(Integer.parseInt(String.valueOf(strNum1.charAt(i))));
+        }
+
+        for (int i = strNum2.length() - 1; i >= 0; i--) {
+            num2.insert(Integer.parseInt(String.valueOf(strNum2.charAt(i))));
+        }
+
+        question2 sum = num1.add(num2);
+        question2 diff = num1.subtract(num2);
+        question2 product = num1.multiply(num2);
+
+        System.out.print("num1: ");
+        num1.display();
+        System.out.print("num2: ");
+        num2.display();
+        System.out.print("Sum: ");
+        sum.display();
+        System.out.print("Difference: ");
+        diff.display();
+        System.out.print("Product: ");
+        product.display();
+    }
+}
+
+2.双链表程序：
+package 双链表;
+
+public class DuLNode {
+    public Object data;
+    public DuLNode prior;
+    public DuLNode next;
+    //初始化双链表
+    public DuLNode(){
+        this(null);
+    }
+    public DuLNode(Object data){
+        this.data=data;
+        this.prior=null;
+        this.next=null;
+    }
+}
+package 双链表;
+
+public class question3 {
+    private DuLNode head;
+    public question3(){
+        head=null;
+    }
+    public void insert(int val){
+        DuLNode newNode=new DuLNode(val);
+        newNode.next=head;
+        head=newNode;
+    }
+    public void display() {
+        DuLNode current = head;
+        while (current != null) {
+            System.out.print(current.data);
+            current = current.next;
+        }
+        System.out.println();
+    }
+    public question3 add(question3 other){
+        question3 result=new question3();
+        DuLNode current1=this.head;
+        DuLNode current2=other.head;
+        int carry = 0;
+
+        while (current1 != null || current2 != null) {
+            int sum = carry;
+
+            if (current1 != null) {
+                sum += (int) current1.data;
+                current1 = current1.next;
+            }
+
+            if (current2 != null) {
+                sum += (int) current2.data;
+                current2 = current2.next;
+            }
+
+            carry = sum / 10;
+            result.insert(sum % 10);
+        }
+
+        if (carry > 0) {
+            result.insert(carry);
+        }
+
+        return result;
+    }
+    public question3 subtract(question3 other) {
+        question3 result = new question3();
+        DuLNode current1 = this.head;
+        DuLNode current2 = other.head;
+        int borrow = 0;
+
+        while (current1 != null) {
+            int diff = (int) current1.data - borrow;
+
+            if (current2 != null) {
+                diff -= (int) current2.data;
+                current2 = current2.next;
+            }
+
+            if (diff < 0) {
+                diff += 10;
+                borrow = 1;
+            } else {
+                borrow = 0;
+            }
+
+            result.insert(diff);
+            current1 = current1.next;
+        }
+
+        // Remove leading zeroes
+        while (result.head != null && (int) result.head.data == 0) {
+            result.head = result.head.next;
+        }
+
+        return result;
+    }
+    public question3 multiply(question3 other) {
+        question3 result = new question3();
+        DuLNode current1 = this.head;
+
+        while (current1 != null) {
+            int digit = (int) current1.data;
+            question3 tempResult = new question3();
+            int carry = 0;
+
+            for (DuLNode node = other.head; node != null; node = node.next) {
+                int product = digit * (int) node.data + carry;
+                carry = product / 10;
+                tempResult.insert(product % 10);
+            }
+
+            if (carry > 0) {
+                tempResult.insert(carry);
+            }
+
+            for (int i = 0; i < result.size(); i++) {
+                tempResult.insert(0); // Shift digits by i positions
+            }
+
+            result = result.add(tempResult);
+            current1 = current1.next;
+        }
+
+        return result;
+    }
+
+    public int size() {
+        int count = 0;
+        DuLNode current = this.head;
+        while (current != null) {
+            count++;
+            current = current.next;
+        }
+        return count;
+    }
+
+    public static void main(String[] args){
+        question3 num1=new question3();
+        question3 num2=new question3();
+        String s1="12345678";
+        String s2="9876543";
+        for (int i = s1.length() - 1; i >= 0; i--) {
+            num1.insert(Integer.parseInt(String.valueOf(s1.charAt(i))));
+        }
+
+        for (int i = s2.length() - 1; i >= 0; i--) {
+            num2.insert(Integer.parseInt(String.valueOf(s2.charAt(i))));
+        }
+        question3 sum=num1.add(num2);
+        question3 diff = num1.subtract(num2);
+        question3 product = num1.multiply(num2);
+
+        System.out.print("num1: ");
+        num1.display();
+        System.out.print("num2: ");
+        num2.display();
+        System.out.print("Sum: ");
+        sum.display();
+        System.out.print("Difference: ");
+        diff.display();
+        System.out.print("Product: ");
+        product.display();
+    }
+}
+3.单循环链表程序：
+Node类：
+package 单循环链表;
+
+class Node {
+    Object data;
+    Node next;
+    public Node(){
+        this.data=null;
+        this.next=null;
+    }
+
+    public Node(Object val) {
+        this.data = val;
+        this.next = null;
+    }
+    public Object getData() {
+        return data;
+    }
+
+    public Node getNext() {
+        return next;
+    }
+
+    public void setNext(Node next) {
+        this.next = next;
+    }
+
+
+}
+LinkList类：
+package 单循环链表;
+
+import java.util.Scanner;
+
+public class LinkList {
+
+    Node head;// 头结点
+
+    public LinkList() {// 构造函数用来初始化
+        head = new Node();
+    }
+
+    public LinkList(int n, boolean order) throws Exception{
+        this();
+        if (order) {
+            create1(n);
+        } else {
+            create2(n);
+        }
+    }
+
+    // 尾插法
+    public void create1(int n) throws Exception {
+        Scanner sc = new Scanner(System.in);
+        for (int i = 0; i < n; i++) {
+            insert(length(), sc.next());
+        }
+        sc.close();
+    }
+
+    // 头插法
+    public void create2(int n) throws Exception{
+        Scanner sc = new Scanner(System.in);
+        for (int i = 0; i < n; i++) {
+            insert(0,sc.next());
+        }
+        sc.close();
+    }
+
+    public void clear() {
+        head.setNext(null);
+    }
+
+    public boolean isEmpty() {
+        return head.getNext() == null;
+    }
+
+    public int length() {
+        Node p = head.getNext();
+        int count = 0;
+        while (p != null){
+            p = p.getNext();
+            count++;
+        }
+        return count;
+    }
+
+    public void insert(int index, Object x) throws Exception{
+        Node p = head;
+        int j = -1;
+        while (p != null && j < index-1){
+            p = p.getNext();
+            j++;
+        }
+        if ( j > index-1 || index < 0){
+            throw new Exception("插入位置不合法");
+        }
+        Node s = new Node(x);
+        if (p != null) {
+            s.setNext(p.getNext());
+        }
+        if (p != null) {
+            p.setNext(s);
+        }
+    }
+    public Object get(int i) throws Exception{
+        Node p = head.getNext();
+        int j = 0;
+        while (p != null && j < i){
+            p = p.getNext();
+            j++;
+        }
+        if (p == null || j > i){
+            throw new Exception("第"+i+"个元素不存在");
+        }
+        return p.data;
+    }
+    public void remove(int index) throws IndexOutOfBoundsException {
+        Node p = head;
+        int j = -1;
+        while (p != null && j < index-1){
+            p = p.getNext();
+            j++;
+        }
+        if (j > index || p.getNext() == null){
+            throw new IndexOutOfBoundsException("删除位置不合理");
+        }
+        p.setNext(p.getNext().getNext());
+    }
+
+    // 打印列表
+    public void display(){
+        Node p = head.getNext();
+        System.out.print("线性表为(");
+        while (p != null){
+            if (p.getNext() != null)
+                System.out.print(p.getData()+",");
+            else
+                System.out.println(p.getData()+")");
+            p = p.getNext();
+        }
+    }
+}
+单循环链表类：
+package 单循环链表;
+
+import java.util.*;
+
+class SinglyCircularLinkedList {
+
+    Node head;// 头指针
+    public int length;// 记录节点的长度
+
+    public SinglyCircularLinkedList() { // 构造函数用来初始化
+        head = new Node();
+        length = 0;
+    }
+    public Object get(int i)throws Exception{
+        Node p = head.getNext();
+        int j = 0;
+        while (p.getNext() != head && j < i){
+            p=p.getNext();
+            j++;
+        }
+        if (p.getNext() == head || j > i){
+            throw new Exception("第"+i+"个元素不存在");
+        }
+        return p.data;
+    }
+    public int indexOf(Object x){
+        Node p = head.getNext();
+        int j = 0;
+        while (p != head && !p.data.equals(x)){
+            p=p.getNext();
+            j++;
+        }
+        if (p != head){
+            return j;
+        }
+        else return -1;
+    }
+    public void insert(int index, Object x){
+
+        if (index < 0 || index > length) {
+            throw new IndexOutOfBoundsException("插入位置有误");
+        }
+        Node p = head;
+        for (int i = -1; i < index-1; i++) {
+            p = p.getNext();
+        }
+        if (p == head){
+            System.out.println("插入位置不合法");
+        }
+        Node s = new Node(x);
+        s.setNext(p.getNext());
+        p.setNext(s);
+        length++;
+    }
+
+    public void remove(int index) throws IndexOutOfBoundsException {
+        if (index < 0 || index >= length) {
+            throw new IndexOutOfBoundsException("删除位置有误");
+        }
+        Node p = head;
+        int j = -1;
+        while (p.getNext() != head && j < index-1){
+            p.setNext(p);
+            j++;
+        }
+        if (j > index - 1 || p.getNext() == head){
+            System.out.println("插入位置不合理");
+        }
+        p.setNext(p.getNext().getNext());
+    }
+
+    // 打印列表
+    public void display(){
+        Node p = head;
+        System.out.print("线性表为(");
+        for (int i = 0; i < length; i++) {
+            p = p.getNext();
+            if (i != length-1)
+                System.out.print(p.getData()+",");
+            else
+                System.out.println(p.getData()+")");
+        }
+    }
+}
+
+
+最终运算类：
+package 单循环链表;
+
+import java.util.Scanner;
+
+public class question4 {
+    public static LinkList generateNum(String str) throws Exception {
+        LinkList s = new LinkList();
+        for (int i = 0; i < str.length(); i++) {
+            char c = str.charAt(str.length() - i - 1);
+            if ('0' <= c && '9' >= c) {
+                s.insert(i, Integer.valueOf(String.valueOf(c)));
+            } else
+                throw new Exception("输入了非数字型字符");
+        }
+        return s;
+    }
+
+    public static void reverseList(LinkList lst) {
+        Node p = lst.head.getNext();
+        lst.head.setNext(null);
+        Node q;
+        while (p != null) {
+            q = p.getNext();
+            p.setNext(lst.head.getNext());
+            lst.head.setNext(p);
+            p = q;
+        }
+    }
+
+    public static LinkList add(LinkList A, LinkList B) {
+        LinkList result = new LinkList();
+        Node a = A.head;
+        Node b = B.head;
+
+        while (a.getNext() != null || b.getNext() != null) {
+            a = a.getNext();
+            b = b.getNext();
+            if (a == null)
+                a = new Node(0);
+            if (b == null)
+                b = new Node(0);
+            int sum = (Integer) a.data + (Integer) b.data;
+            try {
+                result.insert(result.length(), sum);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        Node l1 = result.head;
+        while (l1.getNext().getNext() != null) {       //处理进位
+            l1 = l1.getNext();
+            if ((Integer) l1.data >= 10) {
+                int tmp = (Integer) l1.data / 10 + (Integer) l1.getNext().data;
+                Node t = new Node(tmp);
+                t.setNext(l1.getNext().getNext());
+                l1.setNext(t);
+                l1.data = (Integer) l1.data % 10;
+            }
+
+        }
+        l1 = l1.getNext();
+        if ((Integer) l1.data >= 10) {    //最高位进位分析
+            Node q = new Node();
+            q.data = (Integer) l1.data / 10;
+            l1.data = (Integer) l1.data % 10;
+            l1.setNext(q);
+            q.setNext(null);
+        }
+        return result;
+    }
+
+    public static LinkList sub(LinkList A, LinkList B) {
+        LinkList result = new LinkList();
+        Node a = A.head;
+        Node b = B.head;
+
+        while (a.getNext() != null || b.getNext() != null) {
+            a = a.getNext();
+            b = b.getNext();
+            if (a == null)
+                a = new Node(0);
+            if (b == null)
+                b = new Node(0);
+            int remainder = (Integer) a.data - (Integer) b.data;
+            try {
+                result.insert(result.length(), remainder);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        Node l1 = result.head;
+        while (l1.getNext().getNext() != null) {       //处理借位
+            l1 = l1.getNext();
+            if ((Integer) l1.data < 0) {
+                int tmp = (Integer) l1.getNext().data - 1;
+                Node t = new Node(tmp);
+                t.setNext(l1.getNext().getNext());
+                l1.setNext(t);
+                l1.data = (Integer) l1.data + 10;
+            }
+
+        }
+        return result;
+    }
+
+    public static LinkList multiply(LinkList A, LinkList B) {
+        LinkList result = new LinkList();
+        for (int i = 0; i < A.length(); i++) {
+            LinkList temp = new LinkList();
+            for (int j = 0; j < B.length(); j++) {
+                try {
+                    int mul = (Integer) A.get(i) * (Integer) B.get(j);
+                    temp.insert(temp.length(), mul);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            for (int k = 0; k < i; k++) {
+                try {
+                    temp.insert(0, 0);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            result = add(result, temp);
+        }
+        return result;
+    }
+
+    public static String getString(LinkList lst) {
+        Node p = lst.head;
+        StringBuilder str = new StringBuilder();
+        while (p.getNext() != null) {
+            p = p.getNext();
+            str.append(p.data);
+        }
+        return str.toString();
+    }
+
+    public static void main(String[] args) {
+        LinkList sA = new LinkList();
+        LinkList sB = new LinkList();
+        Scanner reader = new Scanner(System.in);
+        System.out.println("please give num A:");
+        String A = reader.next();
+        System.out.println("please give num B:");
+        String B = reader.next();
+        System.out.println("please choose the operation：1->加法，2->减法，3->乘法");
+        int choice = reader.nextInt();
+
+        LinkList result;
+        try {
+            sA = generateNum(A);
+            sB = generateNum(B);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        switch (choice) {
+            case 1:
+                result = add(sA, sB);
+                break;
+            case 2:
+                result = sub(sA, sB);
+                try {
+                    if ((Integer) result.get(result.length() - 1) <= 0) {
+                        result = sub(sB, sA);
+                        int high = -(Integer) result.get(result.length() - 1);
+                        result.remove(result.length() - 1);
+                        result.insert(result.length(), high);
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                break;
+            case 3:
+                result = multiply(sA, sB);
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + choice);
+        }
+        reverseList(result);
+        System.out.println("final result：" + getString(result));
+    }
+}
+4.	双循环链表程序：
+Node类和LinkList类与4中相同
+双循环链表类：
+package 双循环链表;
+
+public class DoubleLinkList {
+    Node head;
+    static private class Node{
+        private Object data;//数据
+        private DoubleLinkList.Node next;//下一个结点
+        private DoubleLinkList.Node prior;//上一个结点
+
+        public Node(){
+        }
+        public Node(Object data){
+            this.data=data;
+        }
+        private Node(int data, DoubleLinkList.Node next){
+            this.data=data;
+            this.next=next;
+        }
+
+        public Node(DoubleLinkList.Node prior, int data, DoubleLinkList.Node next){
+            this.prior = prior;
+            this.data = data;
+            this.next = next;
+        }
+
+    }
+    public void insert(int i, Object x) throws Exception{
+        Node p = head.next;
+        int j = 0;
+        while (!p.equals(head) && j < i){
+            p = p.next;
+            j++;
+        }
+        if (j != i && !p.equals(head))
+            throw new Exception("插入位置不合法");
+        Node s = new Node(x);
+        p.prior.next = s;
+        s.prior = p.prior;
+        s.next = p;
+        p.prior = s;
+    }
+
+    public void remove(int i)throws Exception{
+        Node p = head.next;
+        int j = 0;
+        while (!p.equals(head)&& j<i){
+            p = p.next;
+            j++;
+        }
+        if (j != i)
+            throw new Exception("删除位置不合理");
+        p.prior.next = p.next;
+        p.next.prior = p.prior;
+    }
+
+    public Object get(int i)throws Exception{
+        Node p = head;
+        int j = 0;
+        while (p != null && j < i){
+            p = p.next;
+            j++;
+        }
+        if (j>i || p == null){
+            throw new Exception("元素不存在");
+        }
+        return p.data;
+    }
+
+}
+计算结果类：
+package 双循环链表;
+
+import java.util.Scanner;
+
+public class question5{
+    public static LinkList generateNum(String str) throws Exception {
+        LinkList s = new LinkList();
+        for (int i = 0; i < str.length(); i++) {
+            char c = str.charAt(str.length() - i - 1);
+            if ('0' <= c && '9' >= c) {
+                s.insert(i, Integer.valueOf(String.valueOf(c)));
+            } else
+                throw new Exception("输入了非数字型字符");
+        }
+        return s;
+    }
+
+    public static void reverseList(LinkList lst) {
+        Node p = lst.head.getNext();
+        lst.head.setNext(null);
+        Node q;
+        while (p != null) {
+            q = p.getNext();
+            p.setNext(lst.head.getNext());
+            lst.head.setNext(p);
+            p = q;
+        }
+    }
+
+    public static LinkList add(LinkList A, LinkList B) {
+        LinkList result = new LinkList();
+        Node a = A.head;
+        Node b = B.head;
+
+        while (a.getNext() != null || b.getNext() != null) {
+            a = a.getNext();
+            b = b.getNext();
+            if (a == null)
+                a = new Node(0);
+            if (b == null)
+                b = new Node(0);
+            int sum = (Integer) a.data + (Integer) b.data;
+            try {
+                result.insert(result.length(), sum);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        Node l1 = result.head;
+        while (l1.getNext().getNext() != null) {       //处理进位
+            l1 = l1.getNext();
+            if ((Integer) l1.data >= 10) {
+                int tmp = (Integer) l1.data / 10 + (Integer) l1.getNext().data;
+                Node t = new Node(tmp);
+                t.setNext(l1.getNext().getNext());
+                l1.setNext(t);
+                l1.data = (Integer) l1.data % 10;
+            }
+
+        }
+        l1 = l1.getNext();
+        if ((Integer) l1.data >= 10) {    //最高位进位分析
+            Node q = new Node();
+            q.data = (Integer) l1.data / 10;
+            l1.data = (Integer) l1.data % 10;
+            l1.setNext(q);
+            q.setNext(null);
+        }
+        return result;
+    }
+
+    public static LinkList sub(LinkList A, LinkList B) {
+        LinkList result = new LinkList();
+        Node a = A.head;
+        Node b = B.head;
+
+        while (a.getNext() != null || b.getNext() != null) {
+            a = a.getNext();
+            b = b.getNext();
+            if (a == null)
+                a = new Node(0);
+            if (b == null)
+                b = new Node(0);
+            int remainder = (Integer) a.data - (Integer) b.data;
+            try {
+                result.insert(result.length(), remainder);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        Node l1 = result.head;
+        while (l1.getNext().getNext() != null) {       //处理借位
+            l1 = l1.getNext();
+            if ((Integer) l1.data < 0) {
+                int tmp = (Integer) l1.getNext().data - 1;
+                Node t = new Node(tmp);
+                t.setNext(l1.getNext().getNext());
+                l1.setNext(t);
+                l1.data = (Integer) l1.data + 10;
+            }
+
+        }
+        return result;
+    }
+
+    public static LinkList multiply(LinkList A, LinkList B) {
+        LinkList result = new LinkList();
+        for (int i = 0; i < A.length(); i++) {
+            LinkList temp = new LinkList();
+            for (int j = 0; j < B.length(); j++) {
+                try {
+                    int mul = (Integer) A.get(i) * (Integer) B.get(j);
+                    temp.insert(temp.length(), mul);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            for (int k = 0; k < i; k++) {
+                try {
+                    temp.insert(0, 0);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            result = add(result, temp);
+        }
+        return result;
+    }
+
+    public static String getString(LinkList lst) {
+        Node p = lst.head;
+        StringBuilder str = new StringBuilder();
+        while (p.getNext() != null) {
+            p = p.getNext();
+            str.append(p.data);
+        }
+        return str.toString();
+    }
+
+    public static void main(String[] args) {
+        LinkList sA = new LinkList();
+        LinkList sB = new LinkList();
+        Scanner reader = new Scanner(System.in);
+        System.out.println("please give num A:");
+        String A = reader.next();
+        System.out.println("please give num B:");
+        String B = reader.next();
+        System.out.println("please choose the operation：1->加法，2->减法，3->乘法");
+        int choice = reader.nextInt();
+
+        LinkList result;
+        try {
+            sA = generateNum(A);
+            sB = generateNum(B);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        switch (choice) {
+            case 1:
+                result = add(sA, sB);
+                break;
+            case 2:
+                result = sub(sA, sB);
+                try {
+                    if ((Integer) result.get(result.length() - 1) <= 0) {
+                        result = sub(sB, sA);
+                        int high = -(Integer) result.get(result.length() - 1);
+                        result.remove(result.length() - 1);
+                        result.insert(result.length(), high);
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                break;
+            case 3:
+                result = multiply(sA, sB);
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + choice);
+        }
+        reverseList(result);
+        System.out.println("final result：" + getString(result));
+    }
+}
+四. 实验总结
+1.长整数的运算本质上就是将长整数的每一位存储到不同的表中，然后再进行运算，为了运算的方便，我们选择逆向插入，即从个位开始放入不同数据结构中去。同时还要考虑一些相应的细节问题，数据的溢出与否，不同的形式如何用代码来表达。
+2.通过本次实验，我加深了对于线性表的认识，可以较为熟练的掌握它们各自的结构体，并且进行书写和运用。
+3.改进：在前几个链表中我的测试数据均来自于自己给出的；然后在思考过后做出了改进，即让用户选择计算方式，而不是把加减乘除简单打印出来。这个实验的具体实现在一定程度上是繁琐的，需要我们细心完成。
+

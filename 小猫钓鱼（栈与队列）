@@ -1,0 +1,205 @@
+一. 实验题目
+小猫钓鱼纸牌游戏
+
+二. 问题描述
+A和B两位同学玩简单的纸牌游戏，每人手里都有n张牌，两人轮流出牌并依次排列在桌面上，每次出掉手里的第1张牌，出牌后如果发现桌面上有跟刚才打出的牌的数字相同的牌，则把从数字相同的那张牌开始的全部牌依次放在自己手里的牌的末尾。当一个人手里的牌先出完时，游戏结束，对方获胜。
+如n为5，A手里的牌依次为2 3 5 6 1，B手里的牌依次为1 5 4 2 9；
+A出2；
+B出1；
+A出3；
+B出5；
+A出5，发现前面有一张5，则把两个5都拿掉，这时他手里有6 1 5 5；
+桌子上的牌依次为2 1 3；
+B出4；
+A出6；
+B出2，发现前面有一张2，则把从2开始的牌全部拿掉，这时他手里有9 2 1 3 4 6 2；
+桌子上没有牌了；
+A出1；
+B出9；
+A出5；
+B出2；
+依次类推，直到某人先出完牌为止，则对方是胜者。
+编写程序，利用栈和队列，判断谁是胜者。
+
+三. 程序
+play出牌程序如下：
+import java.util.Scanner;
+
+public class Question {
+    public  String Kittenfishing(LinkQueue A, LinkQueue B) throws Exception {
+        LinkStack desktop = new LinkStack();
+        int card ;
+        int order = 1;
+        while(A.length()!=0&&B.length()!=0){
+            if(order==1){
+                card = A.poll();
+                order++;
+            }else{
+                card = B.poll();
+                order--;
+            }
+            if(!desktop.judgment(card)) {
+                desktop.push(card);
+            }else{
+                if(order==2){
+                    takecards(card,desktop,A);
+                }else{
+                    takecards(card,desktop,B);
+                }
+            }
+        }
+        if(A.length()==0){
+            return "A";
+        }else{
+            return "B";
+        }
+    }
+    //拿牌过程
+    public void takecards(int x,LinkStack desktop,LinkQueue C) throws Exception {
+        LinkStack S0 = new LinkStack();
+        S0.push(x);
+        while(x!=desktop.peek()){
+            S0.push(desktop.pop());
+        }
+        S0.push(x);
+        while(S0.length()!=0){
+            C.offer(S0.pop());
+        }
+    }
+    public static void main(String args[]) throws Exception {
+        LinkQueue A = new LinkQueue();
+        LinkQueue B = new LinkQueue();
+        Scanner sc = new Scanner(System.in);
+        // Initialize player hands
+        System.out.println("A与B开始的手牌有多少张?");
+        int num = sc.nextInt();
+        System.out.println("A中的手牌为:");
+        for(int i=0;i<num;i++){
+            A.offer(sc.nextInt());
+        }
+        System.out.println("B中的手牌为:");
+        for(int i=0;i<num;i++){
+            B.offer(sc.nextInt());
+        }
+        Question pm = new Question();
+        String winner = pm.Kittenfishing(A,B);
+        System.out.println("The winner is:"+winner);
+    }
+}
+队列设计程序如下：
+public class LinkQueue {
+    public  int front;
+    public  int rear;
+    public int[] queueElem;
+    public LinkQueue(){
+        this.front = this.rear = 0;
+        this.queueElem = new int[100];
+    }
+    public LinkQueue(int maxSize){
+        this.front = this.rear = 0;
+        this.queueElem = new int[maxSize];
+    }
+    public void clear(){
+        front = rear = 0;
+    }
+    public boolean isEmpty(){
+        return front == rear;
+    }
+    public int length(){
+        return (rear-front+queueElem.length)%queueElem.length;
+    }
+    public int peek(){
+        if(front!=rear){
+            return queueElem[front];
+        }else{
+            return -1;
+        }
+    }
+    public void offer(int x) throws Exception {
+        if ((rear + 1) % queueElem.length == front) {
+            throw new Exception("The queue is full.");
+        } else {
+            queueElem[rear] = x;
+            rear = (rear + 1) % queueElem.length;
+        }
+    }
+    public int poll(){
+        if(front!=rear){
+            int t=queueElem[front];
+            front=(front+1)%queueElem.length;
+            return t;
+        }else{
+            return -1;
+        }
+    }
+
+}
+栈设计程序如下：
+public class LinkStack {
+    Node top;
+    //置空栈
+    public void clear(){
+        top = null;
+    }
+    //判断栈是否置空
+    public boolean isEmpty(){
+        return top==null;
+    }
+    //求链栈的长度
+    public int length(){
+        Node p = top;
+        int length = 0;
+        while(p!=null){
+            length++;
+            p = p.next;
+        }
+        return length;
+    }
+    //取栈顶元素并返回值
+    public int peek(){
+        if(!isEmpty()){
+            return top.data;
+        }else{
+            return -1;
+        }
+    }
+    //入栈
+    public void push(int x){
+        Node p = new Node(x);
+        p.next = top;
+        top = p;
+    }
+    //出栈
+    public int pop(){
+        if(isEmpty()){
+            return -1;
+        }else{
+            Node p = top;
+            top = top.next;
+            return p.data;
+        }
+    }
+    //输出栈中所有元素(遍历)
+    public void display(){
+        Node p = top;
+        while(p!=null){
+            System.out.println(p.data+"");
+            p = p.next;
+        }
+    }
+    public boolean judgment(int x){
+        Node p = top;
+        while(p!=null){
+            if(p.data!=x){
+                p = p.next;
+            }else{
+                return true;
+            }
+        }
+        return false;
+    }
+}
+四. 实验总结
+1.解决本题的关键在于读懂规则抽象出数据结构的类型从而实现代码。本题目主要考察了队列和栈，同时还要理解题目规则从而实现本题代码。根据牌堆特点，A和B手里的牌是排在前面的先出，符合队列特征，因此我选择用队列描述A和B 2个牌堆；而桌面上的牌，则选择用栈来表示。
+2.在最终play代码部分，首先我把A和B手中的牌堆存入队列，对于牌堆界面进行初始化。然后依次出牌放入牌堆，并且检查是否有重复的可以收下去的牌。同时在判断获胜者的时候去寻找最先变空的队列，则反方即为获胜方。
+3.通过本次实验加深了我对于栈和队列的理解，同时深化了异常处理的印象。即出栈、出队列等操作都要进行异常处理使代码全面。

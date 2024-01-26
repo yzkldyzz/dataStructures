@@ -1,0 +1,215 @@
+一. 实验题目
+查找算法的实现及性能测试和比较
+
+二. 问题描述
+数据表中有n个整数，n的值由用户输入，n个整数随机生成，表可以是有序的也可以是无序的，表用顺序存储结构实现。比较各种查找算法在不同情况下的实测时间性能。
+查找算法的实测时间性能包括两个指标：算法的平均执行时间和关键字的平均比较次数。
+要求考虑查找成功和查找失败两种情形。
+为了能获得查找算法的平均执行时间，需要对表中的数据进行较大量的查找，设为m次，m的值也由用户输入。如输入m为1000000时，则对表作1000000次查找。
+（1）编写程序，比较在有序表和无序表中进行顺序查找时，查找成功和查找失败时的算法的实测时间性能。
+（2）编写程序，比较在同一有序表中进行顺序查找和二分查找时的算法的实测时间性能。
+（3）编写程序，比较在同一有序表中进行非递归二分查找和递归二分查找时的算法的实测时间性能。
+
+三. 程序和执行结果（执行结果用截图）
+程序：
+记录类如下：
+public class RecordNode implements Comparable<RecordNode> {
+    public Comparable key;
+    public int element;
+
+    public RecordNode(Comparable key) {
+        this.key = key;
+    }
+
+    public RecordNode(Comparable key, int element) {
+        this.key = key;
+        this.element = element;
+    }
+
+    @Override
+    public int compareTo(RecordNode other) {
+        return this.key.compareTo(other.key);
+    }
+}
+顺序表类如下：
+public class SeqList {
+    public RecordNode[] r;
+    public int curLen;
+    public SeqList(int maxSize){
+        this.r=new RecordNode[maxSize];
+        this.curLen=0;
+    }
+    public void insert(int i,RecordNode x) throws Exception{
+        if(curLen==r.length){
+            throw new Exception("顺序表已满");
+        }
+        if(i<0|i>curLen){
+            throw new Exception("插入位置不合理");
+        }
+        for(int j=curLen;j>i;j--){
+            r[j]=r[j-1];
+        }
+        r[i]=x;
+        this.curLen++;
+    }
+}
+查找算法和性能测试代码如下：
+import java.util.Arrays;
+
+public class SearchPerformanceTest {
+
+    public static void main(String[] args) throws Exception {
+        // 用户输入表的大小 n 和查找次数 m
+        int n = 1000;
+        int m = 1000000;
+
+        // 创建有序表和无序表
+        SeqList orderedList = createOrderedList(n);
+        SeqList unorderedList = createUnorderedList(n);
+
+        // (1)测试顺序查找（有序表+无序表）
+        System.out.println("有序表结果如下：");
+        testSeqSearch(orderedList, m);
+        System.out.println("无序表结果如下：");
+        testSeqSearch(unorderedList, m);
+
+        // 对有序表进行排序，以便进行二分查找
+        Arrays.sort(orderedList.r, 0, orderedList.curLen);
+
+        //(2) 测试比较二分查找和顺序查找
+        System.out.println("二分查找结果如下：");
+        testBinarySearch(orderedList, m);
+        System.out.println("顺序查找结果如下：");
+        testSeqSearch(orderedList, m);
+
+        //(3) 测试非递归二分查找和递归二分查找
+        System.out.println("非递归二分查找结果如下：");
+        testIterativeBinarySearch(orderedList, m);
+        System.out.println("递归二分查找结果如下：");
+        testRecursiveBinarySearch(orderedList, m);
+    }
+    //创建有序表
+    private static SeqList createOrderedList(int n) throws Exception {
+        SeqList list = new SeqList(n);
+        for (int i = 0; i < n; i++) {
+            RecordNode record = new RecordNode(i);
+            list.insert(i, record);
+        }
+        return list;
+    }
+    //创建无序表
+    private static SeqList createUnorderedList(int n) throws Exception {
+        SeqList list = new SeqList(n);
+        for (int i = 0; i < n; i++) {
+            RecordNode record = new RecordNode(i);
+            list.insert((int) (Math.random() * (i + 1)), record);
+        }
+        return list;
+    }
+    //测试顺序查找性能
+    private static void testSeqSearch(SeqList list, int m) {
+        long startTime = System.currentTimeMillis();
+        for (int i = 0; i < m; i++) {
+            int key = (int) (Math.random() * list.curLen);
+            seqSearch(list, key);
+        }
+        long endTime = System.currentTimeMillis();
+        System.out.println("顺序查找总时间: " + (endTime - startTime) + " milliseconds");
+    }
+    //顺序查找
+    private static void seqSearch(SeqList list, int key) {
+        for (int i = 0; i < list.curLen; i++) {
+            if (list.r[i].key.equals(key)) {
+                // 查找成功
+                return;
+            }
+        }
+        // 查找失败
+    }
+    //测试二分查找
+    private static void testBinarySearch(SeqList list, int m) {
+        long startTime = System.currentTimeMillis();
+        for (int i = 0; i < m; i++) {
+            int key = (int) (Math.random() * list.curLen);
+            binarySearch(list, key);
+        }
+        long endTime = System.currentTimeMillis();
+        System.out.println("二分查找总时间: " + (endTime - startTime) + " milliseconds");
+    }
+
+    private static void binarySearch(SeqList list, int key) {
+        int low = 0;
+        int high = list.curLen - 1;
+        while (low <= high) {
+            int mid = (low + high) / 2;
+            if (list.r[mid].key.equals(key)) {
+                // 查找成功
+                return;
+            } else if (list.r[mid].key.compareTo(key) < 0) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+        // 查找失败
+    }
+
+    private static void testIterativeBinarySearch(SeqList list, int m) {
+        long startTime = System.currentTimeMillis();
+        for (int i = 0; i < m; i++) {
+            int key = (int) (Math.random() * list.curLen);
+            iterativeBinarySearch(list, key);
+        }
+        long endTime = System.currentTimeMillis();
+        System.out.println("非递归二分查找总时间: " + (endTime - startTime) + " milliseconds");
+    }
+
+    private static void iterativeBinarySearch(SeqList list, int key) {
+        int low = 0;
+        int high = list.curLen - 1;
+        while (low <= high) {
+            int mid = (low + high) / 2;
+            if (list.r[mid].key.equals(key)) {
+                // 查找成功
+                return;
+            } else if (list.r[mid].key.compareTo(key) < 0) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+        // 查找失败
+    }
+
+    private static void testRecursiveBinarySearch(SeqList list, int m) {
+        long startTime = System.currentTimeMillis();
+        for (int i = 0; i < m; i++) {
+            int key = (int) (Math.random() * list.curLen);
+            recursiveBinarySearch(list, key, 0, list.curLen - 1);
+        }
+        long endTime = System.currentTimeMillis();
+        System.out.println("递归二分查找总时间: " + (endTime - startTime) + " milliseconds");
+    }
+
+    private static void recursiveBinarySearch(SeqList list, int key, int low, int high) {
+        if (low <= high) {
+            int mid = (low + high) / 2;
+            if (list.r[mid].key.equals(key)) {
+                // 查找成功
+                return;
+            } else if (list.r[mid].key.compareTo(key) < 0) {
+                recursiveBinarySearch(list, key, mid + 1, high);
+            } else {
+                recursiveBinarySearch(list, key, low, mid - 1);
+            }
+        }
+        // 查找失败
+    }
+}
+四. 实验总结
+1.通过本次实验，我对于顺序查找、二分查找、递归算法的书写结构有了较为清晰明确的认知，掌握度也大大提高了。
+2.通过本次实验，我对于如何比较算法性能有了更好的理解与认识。我通过调用系统自带的打印时间的方法，得到了各种算法的执行时间。
+3.对于有序表和无序表的设计，加深了对于顺序表的认识与理解。
+4.通过本次实验对于测试性能需求的认识，我对于书上学到的相关排序算法做出了调整，即打印排序结果不是本次实验的最重要的点，使得自己的代码变得更加简洁和精炼。
+5.通过本次实验，我对于RecordNode的使用有了更为清晰的认识，对于关键字key的使用也有了进一步掌握。
+

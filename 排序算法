@@ -1,0 +1,367 @@
+一. 实验题目
+排序算法的实现及性能测试和比较
+
+二. 问题描述
+在教材中，各种排序算法的时间复杂度分析结果，只给出了算法执行时间的阶或大概执行时间。试通过具体数据比较各种排序算法的关键字比较次数和记录移动次数，以获得直观感受。
+（1）编写程序，创建一些由整数组成的文件（一维数组）用于排序。这些文件可以根据需要生成不同的长度，如长度分别为20，200和2000，并包括正序、逆序和无序3种次序。通过把这些数据保存在文件中，而不是每次随机生成，就能用同样的数据去测试不同的排序算法，其结果更具有说服力。
+（2）编写程序，数据表用顺序存储结构实现，实现插入排序、选择排序、希尔排序、归并排序、快速排序和堆排序等，并比较这些排序算法的实测时间性能，包括算法的执行时间、关键字的比较次数和记录的移动次数。
+
+三. 程序和执行结果（执行结果用截图）
+程序：
+//待排序记录的类
+public class RecordNode {
+    public int data;
+    public RecordNode(int data){
+        this.data=data;
+    }
+    public RecordNode(){
+
+    }
+}
+//待排序的顺序表类
+public class SeqList {
+    public RecordNode[] r;
+    public int curLen;
+    public SeqList(){}
+    public SeqList(int maxSize){
+        this.r=new RecordNode[maxSize];
+        this.curLen=0;
+    }
+    public void insert(int i,RecordNode x) throws Exception{
+        if(curLen==r.length){
+            throw new Exception("The sqList is full.");
+        }
+        if(i<0||i>curLen){
+            throw new Exception("not reasonable operation.");
+        }
+        for(int j=curLen;j>i;j--){
+            r[j]=r[j-1];
+        }
+        r[i]=x;
+        this.curLen++;
+    }
+    //直接插入排序
+    public void insertSortWithGuard() {
+        int i, j;
+        for (i = 1; i < this.curLen; i++) {
+            // 使用哨兵简化边界条件处理
+            r[0] = r[i];
+            // 寻找插入位置
+            for (j = i - 1; j >= 0 && r[0].data - r[j].data < 0; j--) {
+                r[j + 1] = r[j];
+            }
+            // 插入元素
+            r[j + 1] = r[0];
+        }
+    }
+    //希尔排序
+    public void shellSort(int[] d){
+        RecordNode tmp;
+        int i,j;
+        for(int k=0;k<d.length;k++){
+            int dk=d[k];
+            for(i=dk;i<this.curLen;i++){
+                tmp=r[i];
+                for(j=i-dk;j>=0&&tmp.data-r[j].data<0;j-=dk){
+                    r[j+dk]=r[j];
+                }
+                r[j+dk]=tmp;
+            }
+        }
+    }
+    //选择排序
+    public void selectSort(){
+        RecordNode t;
+        for(int i=0;i<this.curLen-1;i++){
+            int min=i;
+            for(int j=i+1;j<this.curLen;j++){
+                if(r[j].data-r[min].data<0){
+                    min=j;
+                }
+            }
+            if(min!=i){
+                t=r[i];
+                r[i]=r[min];
+                r[min]=t;
+            }
+        }
+    }
+    //冒泡排序
+    public void bubbleSort(){
+        RecordNode tmp;
+        boolean flag=true;
+        for(int i = 1;i<this.curLen&&flag;i++){
+            flag=false;
+            for(int j=0;j<this.curLen-i;j++){
+                if(r[j].data-r[j+1].data>0){
+                    tmp=r[j];
+                    r[j]=r[j+1];
+                    r[j+1]=tmp;
+                    flag=true;
+                }
+            }
+        }
+    }
+
+}
+//直接插入排序执行代码
+import java.util.Random;
+
+public class Q1 {
+
+    public static void main(String[] args) {
+        SeqList seqList = new SeqList(20); // 以适当的大小初始化 SeqList 对象
+
+        // 生成随机数组并插入到 SeqList 中
+        for (int i = 1; i < seqList.r.length; i++) {
+            seqList.r[0]=null;
+            seqList.r[i] = new RecordNode((int) (Math.random() * 1000));
+            seqList.curLen++;
+        }
+
+        // 打印原始数组
+        System.out.println("Original Array: " + seqListToString(seqList));
+
+        // 使用 insertSortWithGuard 方法进行排序
+        seqList.insertSortWithGuard();
+
+        // 打印排序后的数组
+        System.out.println("Sorted Array:（直接插入排序） " + seqListToString(seqList));
+    }
+
+    // 将 SeqList 转换为字符串
+    public static String seqListToString(SeqList seqList) {
+        StringBuilder result = new StringBuilder("[");
+        for (int i = 1; i < seqList.curLen; i++) {
+            result.append(seqList.r[i].data);
+            if (i < seqList.curLen - 1) {
+                result.append(", ");
+            }
+        }
+        result.append("]");
+        return result.toString();
+    }
+
+}
+//希尔排序代码如下：
+public class Q2 {
+    public static void main(String[] args) {
+        SeqList seqList = new SeqList(20); // 以适当的大小初始化 SeqList 对象
+
+        // 生成随机数组并插入到 SeqList 中
+        for (int i = 0; i < seqList.r.length; i++) {
+            seqList.r[i] = new RecordNode((int) (Math.random() * 1000));
+            seqList.curLen++;
+        }
+
+        // 打印原始数组
+        System.out.println("Original Array: " + seqListToString(seqList));
+
+        // 使用 shellSort 方法进行排序，传递增量序列
+        int[] increments = {5, 3, 1}; // 适当选择希尔排序的增量序列
+        seqList.shellSort(increments);
+
+        // 打印排序后的数组
+        System.out.println("Sorted Array:（希尔排序） " + seqListToString(seqList));
+    }
+
+    // 将 SeqList 转换为字符串
+    public static String seqListToString(SeqList seqList) {
+        StringBuilder result = new StringBuilder("[");
+        for (int i = 0; i < seqList.curLen; i++) {
+            result.append(seqList.r[i].data);
+            if (i < seqList.curLen - 1) {
+                result.append(", ");
+            }
+        }
+        result.append("]");
+        return result.toString();
+    }
+}
+//选择排序实现过程如下：
+public class Q3 {
+    public static void main(String[] args){
+        SeqList seqList = new SeqList(20); // 以适当的大小初始化 SeqList 对象
+        // 生成随机数组并插入到 SeqList 中
+        for (int i = 0; i < seqList.r.length; i++) {
+            seqList.r[i] = new RecordNode((int) (Math.random() * 1000));
+            seqList.curLen++;
+        }
+        // 打印原始数组
+        System.out.println("Original Array: " + seqListToString(seqList));
+
+        // 使用 insertSortWithGuard 方法进行排序
+        seqList.selectSort();
+
+        // 打印排序后的数组
+        System.out.println("Sorted Array:（快速排序） " + seqListToString(seqList));
+    }
+
+    // 将 SeqList 转换为字符串
+    public static String seqListToString(SeqList seqList) {
+        StringBuilder result = new StringBuilder("[");
+        for (int i = 0; i < seqList.curLen; i++) {
+            result.append(seqList.r[i].data);
+            if (i < seqList.curLen - 1) {
+                result.append(", ");
+            }
+        }
+        result.append("]");
+        return result.toString();
+    }
+}
+//冒泡排序代码如下：
+public class Q4 {
+    public static void main(String[] args){
+        SeqList seqList = new SeqList(20); // 以适当的大小初始化 SeqList 对象
+    // 生成随机数组并插入到 SeqList 中
+        for (int i = 0; i < seqList.r.length; i++) {
+        seqList.r[i] = new RecordNode((int) (Math.random() * 1000));
+        seqList.curLen++;
+    }
+    // 打印原始数组
+        System.out.println("Original Array: " + seqListToString(seqList));
+
+    // 使用 insertSortWithGuard 方法进行排序
+        seqList.bubbleSort();
+
+    // 打印排序后的数组
+        System.out.println("Sorted Array:（冒泡排序） " + seqListToString(seqList));
+}
+
+    // 将 SeqList 转换为字符串
+    public static String seqListToString(SeqList seqList) {
+        StringBuilder result = new StringBuilder("[");
+        for (int i = 0; i < seqList.curLen; i++) {
+            result.append(seqList.r[i].data);
+            if (i < seqList.curLen - 1) {
+                result.append(", ");
+            }
+        }
+        result.append("]");
+        return result.toString();
+    }
+
+}
+检测代码如下（选择了希尔排序和直接插入排序2种）
+import java.util.function.Consumer;
+
+public class SortingPerformanceComparison {
+    public static void main(String[] args) {
+        int[] array1 = generateArray(2000, "random");
+        int[] array2 = generateArray(2000, "random");
+
+        // 测试插入排序
+        testSortingAlgorithm("Insertion Sort", array1.clone(), SortingPerformanceComparison::insertionSort);
+
+        // 测试希尔排序
+        testSortingAlgorithm("Shell Sort", array2.clone(), SortingPerformanceComparison::shellSort);
+
+        // 测试结束
+    }
+
+    // 插入排序算法
+    public static void insertionSort(int[] array) {
+        int n = array.length;
+        int compareCount = 0;
+        int moveCount = 0;
+
+        for (int i = 1; i < n; i++) {
+            int key = array[i];
+            int j = i - 1;
+
+            while (j >= 0 && array[j] > key) {
+                array[j + 1] = array[j];
+                j = j - 1;
+                compareCount++;
+                moveCount++;
+            }
+            array[j + 1] = key;
+            moveCount++;
+        }
+
+        printPerformanceResults("Insertion Sort", compareCount, moveCount);
+    }
+
+    // 希尔排序算法
+    public static void shellSort(int[] array) {
+        int n = array.length;
+        int compareCount = 0;
+        int moveCount = 0;
+
+        // 选择适当的增量序列
+        int[] increments = {5, 3, 1};
+
+        for (int k = 0; k < increments.length; k++) {
+            int dk = increments[k];
+            for (int i = dk; i < n; i++) {
+                int tmp = array[i];
+                int j = i - dk;
+
+                while (j >= 0 && tmp < array[j]) {
+                    array[j + dk] = array[j];
+                    j -= dk;
+                    compareCount++;
+                    moveCount++;
+                }
+                array[j + dk] = tmp;
+                moveCount++;
+            }
+        }
+
+        printPerformanceResults("Shell Sort", compareCount, moveCount);
+    }
+
+    // 生成指定长度和次序的数组
+    public static int[] generateArray(int length, String order) {
+        int[] array = new int[length];
+
+        if ("asc".equalsIgnoreCase(order)) {
+            for (int i = 0; i < length; i++) {
+                array[i] = i + 1;
+            }
+        } else if ("desc".equalsIgnoreCase(order)) {
+            for (int i = 0; i < length; i++) {
+                array[i] = length - i;
+            }
+        } else {
+            for (int i = 0; i < length; i++) {
+                array[i] = (int) (Math.random() * length * 10);
+            }
+        }
+
+        return array;
+    }
+
+    // 打印性能结果
+    public static void printPerformanceResults(String algorithm, int compareCount, int moveCount) {
+        System.out.println(algorithm + " Performance Results:");
+        System.out.println("   Compare Count: " + compareCount);
+        System.out.println("   Move Count: " + moveCount);
+        System.out.println();
+    }
+
+    // 测试排序算法的性能
+    public static void testSortingAlgorithm(String algorithm, int[] array, Consumer<int[]> sortingAlgorithm) {
+        long startTime = System.currentTimeMillis();
+
+        sortingAlgorithm.accept(array);
+
+        long endTime = System.currentTimeMillis();
+        long executionTime = endTime - startTime;
+
+        printPerformanceResults(algorithm, 0, 0); // 由于使用 lambda 表达式，这里填写 0
+        System.out.println("   Execution Time: " + executionTime + " milliseconds\n");
+    }
+}
+
+ 
+四. 实验总结
+1.通过本次实验，加深巩固了我对于排序的相关算法的理解，熟练掌握了插入排序、冒泡排序、快速排序、选择排序等具体算法。
+2.这条题目的创新点之一在于要我们利用随机数排序，而如何把随机数放入待测数组这个问题是我之前没有遇到的，调用random方法进行实现。
+3.在使用直接插入排序算法时我也遇到了问题，选择带监视哨的优化算法，但是第0个位置的数字却没有参与排序，解决方法是对于第0个位置选择不存储数字，这样就可以使得比较正常。
+4.这条题目的创新点之二在于让我们用代码对于算法进行比较，时间复杂度和空间复杂度变得代码化了。我设计了一个test类进行判断评估。通过查找资料发现其实也可以用System.currentTimeMillis()计数时间。可以发现，希尔算法是优于直接插入排序算法的。
+5.对于相关排序算法的理解与总结：
+（1）插入排序是将元素列表中未排序的数据依次插入到有序序列中。它的原理类似于玩扑克牌时，手动抓牌和排序，每抓一张新牌都按顺序插入到已有的牌中。这种排序是最贴合我们日常思维的排序，对于这个算法有一个优化，空出数组索引为0的位置，节约存储空间。
+（2）冒泡排序的原理是重复扫描待排序序列，并比较每一对相邻的元素，当该对元素顺序不正确时进行交换。一直重复这个过程，直到没有任何两个相邻的元素可以交换，就表明完成了排序。
+（3）归并排序的基本思想：将待排序序列R[0…n-1]看成是n个长度为1的有序序列，将相邻的有序序列成对归并，得到n/2个长度为2的有序序列；将这些有序序列再次归并，得到n/4个长度为4的有序序列；如此反复进行下去，最后可以得到一个长度为n的有序序列。这个算法可以结合二分法进行理解，会更容易使用。

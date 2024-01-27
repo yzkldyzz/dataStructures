@@ -1,0 +1,293 @@
+一. 实验题目
+社交网络模型图
+
+二. 问题描述
+设计并实现社交网络模型图。
+（1）编写程序，每个人的信息是一个顶点，若两个人相互认识则相应两个顶点之间构成一条边。
+（2）编写程序，根据输入的任意两个人的信息，给出他们之间的联系路径和最少经过多少人构成联系。
+（3）编写程序，可根据自己的创意添加更多的功能。
+
+三. 程序和执行结果（执行结果用截图）
+程序：（方法一）
+import java.util.*;
+public class MGraph {
+    private int vexNum,arcNum;
+    private  String[] vexs;
+    private int[][] arcs;//
+    public MGraph(int vexNum,int arcNum,String[] vexs,int[][] arcs){
+        this.vexNum=0;
+        this.arcNum=0;
+        this.vexs=null;
+        this.arcs=null;
+    }
+    public void createUDG() {
+        Scanner in = new Scanner(System.in);
+        System.out.println("请输入总人数：");
+        vexNum = in.nextInt();
+        vexs = new String[vexNum];
+        System.out.println("请输入人名：");
+        for (int i = 0; i < vexNum; i++) {
+            vexs[i] = in.next();
+        }
+        // 初始化邻接矩阵
+        arcs = new int[vexNum][vexNum];
+        for (int i = 0; i < vexNum; i++) {
+            for (int j = 0; j < vexNum; j++) {
+                arcs[i][j] = 0;
+            }
+        }
+        System.out.println("请输入有联系的两个人的名字，输入exit结束：");
+        while (true) {
+            String name1 = in.next();
+            if (name1.equals("exit")) {
+                break;
+            }
+            String name2 = in.next();
+            int v = locateVex(name1);
+            int w = locateVex(name2);
+            if (v != -1 && w != -1) {
+                arcs[v][w] = 1;
+                arcs[w][v] = 1; // 无向图，添加反向边
+            } else {
+                System.out.println("输入的人名不存在，请重新输入。");
+            }
+        }
+    }
+
+    public int getVexNum(){
+        return vexNum;
+    }
+    public String getVex(int v) throws Exception{
+        if(v<0||v>=vexNum){
+            throw new Exception("超出人数范围");
+        }
+        return vexs[v];
+    }
+    public int locateVex(String vex){
+        for(int v=0;v<vexNum;v++){
+            if(vexs[v].equals(vex)){
+                return v;
+            }
+        }
+        return -1;
+    }
+    private static boolean[] visited;
+    public void BFSTraverse() throws Exception {
+        visited = new boolean[vexNum];
+        for (int v = 0; v < vexNum; v++) {
+            visited[v] = false;
+        }
+        for (int v = 0; v < vexNum; v++) {
+            if (!visited[v]) {
+                BFS(v);
+            }
+        }
+    }
+
+    public void BFS(int v) throws Exception {
+        Queue<Integer> queue = new LinkedList<>();
+        visited[v] = true;
+        System.out.println(getVex(v));
+
+        queue.add(v);
+        while (!queue.isEmpty()) {
+            int w = queue.poll();
+            for (int i = 0; i < vexNum; i++) {
+                if (arcs[w][i] == 1 && !visited[i]) {
+                    visited[i] = true;
+                    System.out.println(getVex(i));
+                    queue.add(i);
+                }
+            }
+        }
+    }
+
+    public List<String> findShortestPath(String start, String end) throws Exception {
+        List<String> path = new ArrayList<>();
+        int startIndex = locateVex(start);
+        int endIndex = locateVex(end);
+
+        if (startIndex == -1 || endIndex == -1) {
+            System.out.println("输入的人名不存在，请重新输入。");
+            return path;
+        }
+
+        Queue<Integer> queue = new LinkedList<>();
+        Map<Integer, Integer> parentMap = new HashMap<>();
+
+        visited = new boolean[vexNum];
+        visited[startIndex] = true;
+
+        queue.add(startIndex);
+
+        while (!queue.isEmpty()) {
+            int current = queue.poll();
+
+            for (int i = 0; i < vexNum; i++) {
+                if (arcs[current][i] == 1 && !visited[i]) {
+                    queue.add(i);
+                    visited[i] = true;
+                    parentMap.put(i, current);
+
+                    if (i == endIndex) {
+                        return reconstructPath(parentMap, startIndex, endIndex);
+                    }
+                }
+            }
+        }
+
+        return path; // No path found
+    }
+
+    private List<String> reconstructPath(Map<Integer, Integer> parentMap, int start, int end) throws Exception {
+        List<String> path = new ArrayList<>();
+        int current = end;
+
+        while (current != start) {
+            path.add(getVex(current));
+            current = parentMap.get(current);
+        }
+
+        path.add(getVex(start));
+        Collections.reverse(path);
+        return path;
+    }
+
+    public static void main(String[] args) throws Exception {
+        MGraph socialNetwork = new MGraph(0, 0, null, null);
+        socialNetwork.createUDG();
+
+        System.out.println("BFS遍历社交网络:");
+        socialNetwork.BFSTraverse();
+
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("请输入两个人的名字，以查找它们之间的联系路径:");
+        String person1 = scanner.next();
+        String person2 = scanner.next();
+
+        List<String> path = socialNetwork.findShortestPath(person1, person2);
+
+        if (path.isEmpty()) {
+            System.out.println("没有找到路径连接 " + person1 + " 和 " + person2);
+        } else {
+            System.out.println("路径：" + String.join(" -> ", path));
+            System.out.println("最小经过人数：" + (path.size() - 1));
+        }
+    }
+}
+ 
+程序：（方法二）
+import java.util.*;
+
+
+class Person {
+    private String name;
+    private List<Person> friends;
+    //初始化，构造方法
+    public Person(String name) {
+        this.name = name;
+        this.friends = new ArrayList<>();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public List<Person> getFriends() {
+        return friends;
+    }
+
+    public void addFriend(Person friend) {
+        friends.add(friend);
+    }
+}
+
+class SocialNetwork {
+    private Map<String, Person> people;
+
+    public SocialNetwork() {
+        this.people = new HashMap<>();
+    }
+
+    public void addPerson(String name) {
+        people.put(name, new Person(name));
+    }
+
+    public void addFriendship(String person1, String person2) {
+        Person p1 = people.get(person1);
+        Person p2 = people.get(person2);
+
+        if (p1 != null && p2 != null) {
+            p1.addFriend(p2);
+            p2.addFriend(p1);
+        } else {
+            System.out.println("Person not found!");
+        }
+    }
+
+    public List<String> findPath(String start, String end) {
+        Set<String> visited = new HashSet<>();
+        List<String> path = new ArrayList<>();
+        dfs(start, end, visited, path);
+        return path;
+    }
+    //广度优先搜索
+    private boolean dfs(String current, String end, Set<String> visited, List<String> path) {
+        visited.add(current);
+        path.add(current);
+
+        if (current.equals(end)) {
+            return true;
+        }
+
+        Person person = people.get(current);
+        if (person != null) {
+            for (Person friend : person.getFriends()) {
+                if (!visited.contains(friend.getName())) {
+                    if (dfs(friend.getName(), end, visited, path)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        path.remove(path.size() - 1);
+        return false;
+    }
+
+    public int findMinDistance(String start, String end) {
+        List<String> path = findPath(start, end);
+        return path.size() - 1;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        SocialNetwork socialNetwork = new SocialNetwork();
+
+        // 添加人名
+        socialNetwork.addPerson("Alice");
+        socialNetwork.addPerson("Bob");
+        socialNetwork.addPerson("Harry");
+        socialNetwork.addPerson("David");
+
+        // 建立人与人之间关系
+        socialNetwork.addFriendship("Alice", "Bob");
+        socialNetwork.addFriendship("Bob", "Harry");
+        socialNetwork.addFriendship("Harry", "David");
+
+        // 查找如何联系的路径
+        List<String> path = socialNetwork.findPath("Alice", "David");
+        System.out.println("Contact path: " + path);
+
+        // 计算最短路径
+        int minDistance = socialNetwork.findMinDistance("Alice", "David");
+        System.out.println("Minimum distance: " + minDistance);
+    }
+}
+ 
+四. 实验总结
+1.这条题目的解题思路如下：关于2个人的社交联系网络，首先可以使用图的数据结构将关系存储，然后使用邻接矩阵，本题简单之处在于是无向图，所以要想判断两个人之间有关系，只需要遍历他们其中一人所在的邻接矩阵的行的所有为1的值，然后再对那个值进行搜索与遍历，看是否能与另一个人所在结点相连，同时每次遍历都计数，最终输出结果。也就是设计邻接矩阵加广度优先搜索算法，然后设计计数器，就是本题大致思路了。在设计过程中我遇到过如下问题：如何循环由用户输入两者之间存在关系，我一开始循环设计有误导致判断失败；如何设计计数器记录最短路径。
+2.人的名字相当于图的结点，人的关系转换抽象成数据类型。
+3.思路优化：在学过查找一章节后，这道题目还可以有简化方法实现，使用哈希散列表存储数据并且查找，此外使用图中的深度优先算法解决问题，我也给出了相关代码。放在了main方法里。
+4.在本题中我使用了Java自带的队列类，强化了对于其的认知。

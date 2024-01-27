@@ -1,0 +1,562 @@
+一. 实验题目
+二叉树和二叉查找树的实现
+
+二. 问题描述
+（1）二叉树的结点为单个字符。二叉树用链式存储结构实现。编写菜单驱动的二叉树演示程序，用户能演示的二叉树操作至少包括：构造二叉树，先序、中序、后序和层序遍历二叉树，求二叉树的高度和宽度（各层结点个数的最大值），以及统计度为0，1，2的结点个数等。
+（2）对二叉查找树作上述同样处理，并增加以下操作：查找给定值的结点，以及插入和删除给定值的结点。
+
+三. 程序和执行结果（执行结果用截图）
+程序一：
+针对问题一的相关要求，我设计的二叉树相关代码如下：
+首先是二叉树结点类的设计：
+public class BiTreeNode {
+    public String data;
+    public BiTreeNode left,right;
+    public BiTreeNode(){
+        this("",null,null);
+    }
+    public BiTreeNode(String x){
+        this.data=x;
+    }
+    public BiTreeNode(String x,BiTreeNode left,BiTreeNode right){
+        this.data=x;
+        this.left=left;
+        this.right=right;
+    }
+}
+然后是二叉树中相关方法的设计：
+import java.util.*;
+public class BiTree {
+    private BiTreeNode root;
+    //构造空树
+    public BiTree(){
+        this.root=null;
+    }
+    //构造一棵树
+    public BiTree(BiTreeNode root){
+        this.root=root;
+    }
+    //构造一棵二叉树
+    public BiTree(String preorder,String inOrder, int preIndex, int inIndex, int count){
+        if(count>0){
+            char r=preorder.charAt(preIndex);
+            int i=0;
+            for(;i<count;i++)
+                if(r==inOrder.charAt(i+inIndex))
+                    break;
+            root=new BiTreeNode(""+r);
+            root.left=new BiTree(preorder,inOrder,preIndex+1,inIndex,i).root;
+            root.right=new BiTree(preorder,inOrder,preIndex+i+1,inIndex+1+i,count-1-i).root;
+            
+        }
+    }
+    //由先根遍历和中根遍历创建一棵二叉树
+    private static int index=0;
+    public BiTree(String preStr){
+
+    }
+    //先序遍历（根左右）
+    public void preRootTraverse(BiTreeNode T){
+        if(T!=null){
+            System.out.println(T.data);
+            preRootTraverse(T.left);
+            preRootTraverse(T.right);
+        }
+    }
+    public void preRootTraverse(){
+        BiTreeNode T=root;
+        if(T!=null){
+            LinkStack S=new LinkStack();
+            S.push(T);
+            while(T!=null){
+                T=(BiTreeNode) S.pop();
+                System.out.println(T.data);
+                if(T.left!=null){
+                    System.out.println(T.left.data);
+                }
+                if(T.right!=null){
+                    System.out.println(T.right.data);
+                }
+                T=T.left;
+            }
+        }
+    }
+    //中序遍历（左根右）
+    public void inRootTraverse(BiTreeNode T){
+        if(T!=null){
+            preRootTraverse(T.left);
+            System.out.println(T.data);
+            preRootTraverse(T.right);
+        }
+    }
+    public void inRootTraverse(){
+
+    }
+    //后序遍历（左右根）
+    public void postRootTraverse(BiTreeNode T){
+        if(T!=null){
+            preRootTraverse(T.left);
+            preRootTraverse(T.right);
+            System.out.println(T.data);
+        }
+    }
+    public void postRootTraverse(){
+
+    }
+    //层次遍历
+    public void levelTraverse(){
+        BiTreeNode T=root;
+        if(T!=null){
+            LinkQueue L=new LinkQueue();
+            L.offer(T);
+            while(!L.isEmpty()){
+                T=(BiTreeNode) L.poll();
+                System.out.println(T.data);
+                if(T.left!=null){
+                    L.offer(T.left);
+                }
+                if(T.right!=null){
+                    L.offer(T.right);
+                }
+            }
+        }
+    }
+    public BiTreeNode getRoot(){
+        return root;
+    }
+    public void setRoot(BiTreeNode root){
+        this.root=root;
+    }
+    //求高度
+    public int getHeight(BiTreeNode T) {
+        if (T == null) {
+            return 0;
+        } else {
+            int leftHeight = getHeight(T.left);
+            int rightHeight = getHeight(T.right);
+
+            // Return the maximum of left and right subtree heights, plus 1 for the current level
+            return Math.max(leftHeight, rightHeight) + 1;
+        }
+    }
+
+    public int getHeight() {
+        return getHeight(root);
+    }
+    //求宽度
+    public int getWidth() {
+        int maxWidth = 0;
+
+        if (root == null) {
+            return 0;
+        }
+
+        Queue<BiTreeNode> queue = new LinkedList<>();
+        queue.offer(root);
+
+        while (!queue.isEmpty()) {
+            int currentLevelSize = queue.size();
+            maxWidth = Math.max(maxWidth, currentLevelSize);
+
+            for (int i = 0; i < currentLevelSize; i++) {
+                BiTreeNode currentNode = queue.poll();
+
+                if (currentNode.left != null) {
+                    queue.offer(currentNode.left);
+                }
+                if (currentNode.right != null) {
+                    queue.offer(currentNode.right);
+                }
+            }
+        }
+
+        return maxWidth;
+    }
+
+    //统计度为0的结点个数
+    //统计度为1的结点个数
+    //统计度为2的结点个数
+    //统计度数由用户自行输入决定
+    public int countNodesWithDegree(BiTreeNode T, int degree) {
+        if (T == null) {
+            return 0;
+        }
+
+        int count = 0;
+
+        if ((T.left == null && T.right == null) && degree == 0) {
+            count++;
+        } else if (((T.left != null && T.right == null) || (T.left == null && T.right != null)) && degree == 1) {
+            count++;
+        } else if (T.left != null && T.right != null && degree == 2) {
+            count++;
+        }
+
+        count += countNodesWithDegree(T.left, degree);
+        count += countNodesWithDegree(T.right, degree);
+
+        return count;
+    }
+
+    public int countNodesWithDegree(int degree) {
+        return countNodesWithDegree(root, degree);
+    }
+}
+其中使用了自己写的栈，代码如下：
+public class Node {
+    public Node next;
+    public Object data;
+    Node(){
+        this.next=null;
+
+    }
+    Node(Object x){
+        this.data=x;
+    }
+}
+public class LinkStack {
+    private Node top;
+    public void push(Object x){
+        Node p=new Node(x);
+        p.next=top;
+        top=p;
+    }
+    public Object pop(){
+        return top.data;
+    }
+}
+队列代码如下：
+public class LinkQueue {
+    public  Node front;
+    public  Node rear;
+    public void offer(Object x){
+        Node p=new Node(x);
+        if(front!=null){
+            rear.next=p;
+            rear=p;
+        }
+        else
+            front=rear=p;
+    }
+    public Object poll(){
+        if(front!=null){
+            Node p= front;
+            front=front.next;
+            if(p==rear){
+                rear=null;
+            }
+            return p.data;
+        }
+        else
+            return null;
+    }
+    public boolean isEmpty(){
+        return front==null;
+    }
+}
+程序二：
+针对问题二，二叉查找树的相关算法代码如下：
+package 二叉查找树;
+
+public class TreeNode {
+    char data;
+    TreeNode left, right;
+
+    public TreeNode(char data) {
+        this.data = data;
+        this.left = this.right = null;
+    }
+}
+主体代码如下：
+package 二叉查找树;
+import java.util.*;
+
+public class BST {
+    public TreeNode root;
+    //构造二叉树
+    public BST(){
+        this.root=null;
+    }
+    public void insert(char val){
+        root=insertRec(root,val);
+    }
+    private TreeNode insertRec(TreeNode root, char value) {
+        if (root == null) {
+            return new TreeNode(value);
+        }
+
+        if (value < root.data) {
+            root.left = insertRec(root.left, value);
+        } else if (value > root.data) {
+            root.right = insertRec(root.right, value);
+        }
+
+        return root;
+    }
+
+    // 删除结点
+    public void delete(char value) {
+        root = deleteRec(root, value);
+    }
+
+    private TreeNode deleteRec(TreeNode root, char value) {
+        if (root == null) {
+            return root;
+        }
+
+        if (value < root.data) {
+            root.left = deleteRec(root.left, value);
+        } else if (value > root.data) {
+            root.right = deleteRec(root.right, value);
+        } else {
+            if (root.left == null) {
+                return root.right;
+            } else if (root.right == null) {
+                return root.left;
+            }
+
+            root.data = minValue(root.right);
+
+            root.right = deleteRec(root.right, root.data);
+        }
+
+        return root;
+    }
+
+    private char minValue(TreeNode root) {
+        char minValue = root.data;
+        while (root.left != null) {
+            minValue = root.left.data;
+            root = root.left;
+        }
+        return minValue;
+    }
+
+    // 先序遍历
+    public void preOrderTraversal() {
+        preOrderTraversalRec(root);
+        System.out.println();
+    }
+
+    private void preOrderTraversalRec(TreeNode root) {
+        if (root != null) {
+            System.out.print(root.data + " ");
+            preOrderTraversalRec(root.left);
+            preOrderTraversalRec(root.right);
+        }
+    }
+
+    // 中序遍历
+    public void inOrderTraversal() {
+        inOrderTraversalRec(root);
+        System.out.println();
+    }
+
+    private void inOrderTraversalRec(TreeNode root) {
+        if (root != null) {
+            inOrderTraversalRec(root.left);
+            System.out.print(root.data + " ");
+            inOrderTraversalRec(root.right);
+        }
+    }
+
+    // 后序遍历
+    public void postOrderTraversal() {
+        postOrderTraversalRec(root);
+        System.out.println();
+    }
+
+    private void postOrderTraversalRec(TreeNode root) {
+        if (root != null) {
+            postOrderTraversalRec(root.left);
+            postOrderTraversalRec(root.right);
+            System.out.print(root.data + " ");
+        }
+    }
+
+    // 层序遍历
+    public void levelOrderTraversal() {
+        if (root == null) {
+            return;
+        }
+
+        Queue<TreeNode> queue = new LinkedList<>();
+        queue.offer(root);
+
+        while (!queue.isEmpty()) {
+            TreeNode current = queue.poll();
+            System.out.print(current.data + " ");
+
+            if (current.left != null) {
+                queue.offer(current.left);
+            }
+
+            if (current.right != null) {
+                queue.offer(current.right);
+            }
+        }
+
+        System.out.println();
+    }
+
+    // 求高度
+    public int getHeight() {
+        return getHeightRec(root);
+    }
+
+    private int getHeightRec(TreeNode root) {
+        if (root == null) {
+            return 0;
+        }
+
+        int leftHeight = getHeightRec(root.left);
+        int rightHeight = getHeightRec(root.right);
+
+        return 1 + Math.max(leftHeight, rightHeight);
+    }
+
+    // 求宽度
+    public int getWidth() {
+        if (root == null) {
+            return 0;
+        }
+
+        Queue<TreeNode> queue = new LinkedList<>();
+        queue.offer(root);
+
+        int maxWidth = 0;
+
+        while (!queue.isEmpty()) {
+            int size = queue.size();
+            maxWidth = Math.max(maxWidth, size);
+
+            for (int i = 0; i < size; i++) {
+                TreeNode current = queue.poll();
+                if (current.left != null) {
+                    queue.offer(current.left);
+                }
+                if (current.right != null) {
+                    queue.offer(current.right);
+                }
+            }
+        }
+
+        return maxWidth;
+    }
+
+    // 统计度为0、1、2的结点个数
+    // 统计度为0、1、2的结点个数
+    public int[] countNodeDegrees() {
+        int[] counts = new int[3];
+        countNodeDegreesRec(root, counts);
+        return counts;
+    }
+
+    private void countNodeDegreesRec(TreeNode root, int[] counts) {
+        if (root != null) {
+            if (root.left == null && root.right == null) {
+                counts[0]++; // 度为0的结点
+            } else if (root.left != null && root.right != null) {
+                counts[2]++; // 度为2的结点
+            } else {
+                counts[1]++; // 度为1的结点
+            }
+
+            countNodeDegreesRec(root.left, counts);
+            countNodeDegreesRec(root.right, counts);
+        }
+    }
+
+    // 查找给定值的结点
+    public TreeNode search(char value) {
+        return searchRec(root, value);
+    }
+
+    private TreeNode searchRec(TreeNode root, char value) {
+        if (root == null || root.data == value) {
+            return root;
+        }
+
+        if (value < root.data) {
+            return searchRec(root.left, value);
+        } else {
+            return searchRec(root.right, value);
+        }
+    }
+
+}
+
+二叉查找树的实现算法如下：
+package 二叉查找树;
+
+public class Q2 {
+    public static void main(String[] args) {
+        BST bst = new BST();
+
+        // 插入结点
+        bst.insert('F');
+        bst.insert('D');
+        bst.insert('J');
+        bst.insert('B');
+        bst.insert('E');
+        bst.insert('G');
+        bst.insert('K');
+        bst.insert('A');
+        bst.insert('C');
+        bst.insert('I');
+
+        // 先序遍历
+        System.out.print("Preorder Traversal: ");
+        bst.preOrderTraversal();
+
+        // 中序遍历
+        System.out.print("Inorder Traversal: ");
+        bst.inOrderTraversal();
+
+        // 后序遍历
+        System.out.print("Postorder Traversal: ");
+        bst.postOrderTraversal();
+
+        // 层序遍历
+        System.out.print("Levelorder Traversal: ");
+        bst.levelOrderTraversal();
+
+        // 求高度
+        int height = bst.getHeight();
+        System.out.println("Height: " + height);
+
+        // 求宽度
+        int width = bst.getWidth();
+        System.out.println("Width: " + width);
+
+        // 统计度为0、1、2的结点个数
+        int[] degreeCounts = bst.countNodeDegrees();
+        System.out.println("Degree 0 Count: " + degreeCounts[0]);
+        System.out.println("Degree 1 Count: " + degreeCounts[1]);
+        System.out.println("Degree 2 Count: " + degreeCounts[2]);
+
+        // 查找给定值的结点
+        char valueToSearch = 'D';
+        TreeNode searchedNode = bst.search(valueToSearch);
+        if (searchedNode != null) {
+            System.out.println("Node with value " + valueToSearch + " found.");
+        } else {
+            System.out.println("Node with value " + valueToSearch + " not found.");
+        }
+
+        // 删除给定值的结点
+        char valueToDelete = 'D';
+        bst.delete(valueToDelete);
+
+        // 中序遍历删除后的树
+        System.out.print("Inorder Traversal after deleting " + valueToDelete + ": ");
+        bst.inOrderTraversal();
+    }
+}
+
+ 
+
+四. 实验总结
+1.通过本次实验，进一步加深了我对于二叉树的认识与理解。可以熟练对链式二叉树的相关操作进行代码的书写。同时深化了我对于递归算法的理解，二叉树的遍历的非递归加深了对于栈和队列的认知。问题一就是基本操作的回顾，可以参考书上代码和上课内容较为轻松的完成代码。
+2.进一步加深了对于二叉查找树的认识，二叉查找树的特殊点在于其满足左子树值小于根小于右子树的值，在遍历与排序上有一定特殊性。
+3．关于系统自带的stack和queue类我也有了进一步的认识，在使用自己编写的栈、队列代码的同时，也可以选择调用系统自带的相关代码简化代码。
